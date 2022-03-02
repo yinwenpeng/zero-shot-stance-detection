@@ -494,7 +494,7 @@ def main():
     args = parser.parse_args()
 
     processors = {
-        "rte": RteProcessor
+        "rte": StdProcessor
 
     }
 
