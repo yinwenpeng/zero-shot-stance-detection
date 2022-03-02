@@ -60,8 +60,8 @@ logger = logging.getLogger(__name__)
 # from pytorch_transformers.modeling_bert import BertPreTrainedModel, BertModel
 # import torch.nn as nn
 
-bert_hidden_dim = 1024
-pretrain_model_dir = 'bert-large-uncased' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
+bert_hidden_dim = 768 #1024
+pretrain_model_dir = 'bert-base-uncased' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
 
 def store_transformers_models(model, tokenizer, output_dir, flag_str):
     '''
@@ -682,7 +682,7 @@ if __name__ == "__main__":
     main()
 
 '''
-CUDA_VISIBLE_DEVICES=0 python -u train.VAST.py --task_name rte --do_train --do_lower_case --num_train_epochs 10 --train_batch_size 24 --eval_batch_size 32 --learning_rate 1e-6 --max_seq_length 128 --seed 42
+CUDA_VISIBLE_DEVICES=0 python -u train.VAST.py --task_name rte --do_train --do_lower_case --num_train_epochs 20 --train_batch_size 24 --eval_batch_size 32 --learning_rate 1e-6 --max_seq_length 205 --seed 42
 
 
 '''
