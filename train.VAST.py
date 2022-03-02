@@ -61,6 +61,7 @@ logger = logging.getLogger(__name__)
 # import torch.nn as nn
 
 bert_hidden_dim = 768 #1024
+MLP_hidden_dim = 283
 pretrain_model_dir = 'bert-base-uncased' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
 
 roberta_single= RobertaModel.from_pretrained(pretrain_model_dir)
@@ -101,9 +102,9 @@ class RobertaClassificationHead(nn.Module):
 
     def __init__(self, bert_hidden_dim, num_labels):
         super(RobertaClassificationHead, self).__init__()
-        self.dense = nn.Linear(bert_hidden_dim, bert_hidden_dim)
-        self.dropout = nn.Dropout(0.1)
-        self.out_proj = nn.Linear(bert_hidden_dim, num_labels)
+        self.dense = nn.Linear(bert_hidden_dim, MLP_hidden_dim)
+        self.dropout = nn.Dropout(0.2)
+        self.out_proj = nn.Linear(MLP_hidden_dim, num_labels)
 
     def forward(self, features):
         x = features#[:, 0, :]  # take <s> token (equiv. to [CLS])
@@ -692,7 +693,7 @@ if __name__ == "__main__":
     main()
 
 '''
-CUDA_VISIBLE_DEVICES=3 python -u train.VAST.py --task_name rte --do_train --do_lower_case --num_train_epochs 20 --train_batch_size 26 --eval_batch_size 32 --learning_rate 1e-6 --max_seq_length 205 --seed 42
+CUDA_VISIBLE_DEVICES=3 python -u train.VAST.py --task_name rte --do_train --do_lower_case --num_train_epochs 20 --train_batch_size 64 --eval_batch_size 32 --learning_rate 1e-3 --max_seq_length 205 --seed 42
 
 
 '''
