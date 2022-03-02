@@ -212,8 +212,8 @@ class StdProcessor():
             for i in range(len(df_train)):
                 guid = "train-"+str(i)
 
-                premise = df_train['post'][i]
-                hypothesis = df_train['new_topic'][i]
+                premise = df_train['text'][i]
+                hypothesis = df_train['topic'][i]
                 label = df_train['label'][i]
 
                 examples.append(
