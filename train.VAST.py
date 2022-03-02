@@ -222,7 +222,7 @@ class StdProcessor():
         data_list = []
         for fil in filelists:
             examples = []
-            df_train = pd.read_csv(train_filename)
+            df_train = pd.read_csv(fil)
             df_train = df_train[['post','new_topic','label']]
             df_train['label'] = [dic[i] for i in df_train['label']]
             for i in range(len(df_train)):
