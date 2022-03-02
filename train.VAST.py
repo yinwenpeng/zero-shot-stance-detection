@@ -193,28 +193,6 @@ class StdProcessor():
         return test_examples
 
 
-
-    def get_VAST_test(self,test_filename):
-        print('\nGetting VAST test set\n')
-        dic = {0:'against',1:'support',2:'neutral'}
-
-        #test
-        test_examples = []
-        df_test = pd.read_csv(test_filename)
-        df_test = df_test[['post','new_topic','label']]
-        df_test['label'] = [dic[i] for i in df_test['label']]
-        for i in range(len(df_test)):
-            guid = "test-"+str(i) #change train to test
-            text_a = df_test['new_topic'][i]
-            text_b = df_test['post'][i]
-            label = df_test['label'][i]
-
-            test_examples.append(
-                            InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-
-        return test_examples
-
-
     def get_VAST(self, filelists):
 
         dic = {0:'against',1:'support',2:'neutral'}
@@ -233,7 +211,7 @@ class StdProcessor():
                 label = df_train['label'][i]
 
                 examples.append(
-                                InputExample(guid=guid, text_a=premise, text_b=hypothesis, label=label))
+                                InputExample(guid=guid, text_a=hypothesis, text_b=premise, label=label))
             data_list.append(examples)
 
 
@@ -702,7 +680,7 @@ if __name__ == "__main__":
     main()
 
 '''
-CUDA_VISIBLE_DEVICES=0 python -u train.VAST.py --task_name rte --do_train --do_lower_case --num_train_epochs 10 --train_batch_size 32 --eval_batch_size 32 --learning_rate 1e-6 --max_seq_length 128 --seed 42
+CUDA_VISIBLE_DEVICES=0 python -u train.VAST.py --task_name rte --do_train --do_lower_case --num_train_epochs 10 --train_batch_size 24 --eval_batch_size 32 --learning_rate 1e-6 --max_seq_length 128 --seed 42
 
 
 '''
