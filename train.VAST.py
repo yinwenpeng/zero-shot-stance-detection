@@ -218,8 +218,9 @@ class StdProcessor():
                 for lis in raw_premise:
                     premise+=' '+' '.join(lis)
                 premise = premise.strip()
+                
                 raw_hypothesis = json.loads(df_train['topic'][i])
-                hypothesis = ' '.join(raw_premise)
+                hypothesis = ' '.join(raw_hypothesis)
 
                 label = df_train['label'][i]
 
