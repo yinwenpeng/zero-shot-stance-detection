@@ -494,12 +494,12 @@ def main():
     args = parser.parse_args()
 
     processors = {
-        "std": StdProcessor
+        "rte": RteProcessor
 
     }
 
     output_modes = {
-        "std": "classification"
+        "rte": "classification"
     }
 
     if args.local_rank == -1 or args.no_cuda:
