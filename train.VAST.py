@@ -216,14 +216,16 @@ class StdProcessor():
                 hypothesis = df_train['topic'][i]
                 label = df_train['label'][i]
 
+                print("premise -->:", premise)
+                print("hypothesis -->:", hypothesis)
+
                 examples.append(
                                 InputExample(guid=guid, text_a=premise, text_b=hypothesis, label=label))
             data_list.append(examples)
 
 
         return data_list[0], data_list[1], data_list[2]
-        #return train/dev list of InputExample objects
-############################################################################
+
 
 
 def convert_examples_to_features(examples, label_list, max_seq_length,
