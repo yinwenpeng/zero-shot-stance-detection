@@ -538,7 +538,7 @@ def main():
 
     processor = processors[task_name]()
     output_mode = output_modes[task_name]
-    train_examples, dev_examples, test_examples = processor.get_VAST('/home/tup51337/dataset/VAST/vast_train.csv', '/home/tup51337/dataset/VAST/vast_dev_zero.csv', '/home/tup51337/dataset/VAST/vast_test_zero.csv')
+    train_examples, dev_examples, test_examples = processor.get_VAST(['/home/tup51337/dataset/VAST/vast_train.csv', '/home/tup51337/dataset/VAST/vast_dev_zero.csv', '/home/tup51337/dataset/VAST/vast_test_zero.csv'])
 
     label_list = ["against", "support", "neutral"]
     num_labels = len(label_list)
