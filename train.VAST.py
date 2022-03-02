@@ -43,10 +43,10 @@ from scipy.special import softmax
 # from sklearn.metrics import matthews_corrcoef, f1_score
 
 # from transformers.models.roberta.tokenization_roberta import RobertaTokenizer
-from transformers.models.bert.tokenization_bert import BertTokenizer
+from transformers.models.bert.tokenization_bert import BertTokenizer as RobertaTokenizer
 from transformers.optimization import AdamW
 # from transformers.models.roberta.modeling_roberta import RobertaModel
-from transformers.models.bert.modeling_bert import BertModel
+from transformers.models.bert.modeling_bert import BertModel as RobertaModel
 
 # from transformers.modeling_bert import BertModel
 # from transformers.tokenization_bert import BertTokenizer
