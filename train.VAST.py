@@ -169,18 +169,18 @@ class StdProcessor():
     def get_SemT6_test(self):
         print('\nGetting SemT6 test set\n')
         dic = {'AGAINST':'against', 'FAVOR':'support', 'NONE':'neutral'}
-        
+
         test_examples = []
-        
+
         df_1 = pd.read_csv('dataset/SemT6/trainingdata-all-annotations.txt', sep="	")
         df_2 = pd.read_csv('dataset/SemT6/testdata-taskA-all-annotations.txt', sep="	")
         df_3 = pd.read_csv('dataset/SemT6/testdata-taskB-all-annotations.txt', sep="	")
         df_12 = df_1.append(df_2, ignore_index=True)
         df_test = df_12.append(df_3, ignore_index=True)
-        
+
         df_test = df_test[['Tweet','Target','Stance']]
         df_test['Stance'] = [dic[i] for i in df_test['Stance']]
-    
+
         for i in range(len(df_test)):
             guid = "test-"+str(i) #change train to test
             text_a = df_test['Target'][i]
@@ -189,15 +189,15 @@ class StdProcessor():
 
             test_examples.append(
                             InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-            
+
         return test_examples
-    
-    
-    
+
+
+
     def get_VAST_test(self,test_filename):
         print('\nGetting VAST test set\n')
-        dic = {0:'against',1:'support',2:'neutral'} 
-        
+        dic = {0:'against',1:'support',2:'neutral'}
+
         #test
         test_examples = []
         df_test = pd.read_csv(test_filename)
@@ -211,43 +211,33 @@ class StdProcessor():
 
             test_examples.append(
                             InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-            
-        return test_examples    
+
+        return test_examples
 
 
-    def get_VAST_train_and_dev(self, train_filename, dev_filename):
-        
+    def get_VAST(self, filelists):
+
         dic = {0:'against',1:'support',2:'neutral'}
-        
-        #train
-        train_examples = []
-        df_train = pd.read_csv(train_filename)
-        df_train = df_train[['post','new_topic','label']]
-        df_train['label'] = [dic[i] for i in df_train['label']]
-        for i in range(len(df_train)):
-            guid = "train-"+str(i)
-            text_a = df_train['new_topic'][i]
-            text_b = df_train['post'][i]
-            label = df_train['label'][i]
 
-            train_examples.append(
-                            InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+        data_list = []
+        for fil in filelists:
+            examples = []
+            df_train = pd.read_csv(train_filename)
+            df_train = df_train[['post','new_topic','label']]
+            df_train['label'] = [dic[i] for i in df_train['label']]
+            for i in range(len(df_train)):
+                guid = "train-"+str(i)
 
-        #dev
-        dev_examples = []
-        df_dev = pd.read_csv(dev_filename)
-        df_dev = df_dev[['post','new_topic','label']]
-        df_dev['label'] = [dic[i] for i in df_dev['label']]
-        for i in range(len(df_dev)):
-            guid = "dev-"+str(i) #change train to dev
-            text_a = df_dev['new_topic'][i]
-            text_b = df_dev['post'][i]
-            label = df_dev['label'][i]
+                premise = df_train['post'][i]
+                hypothesis = df_train['new_topic'][i]
+                label = df_train['label'][i]
 
-            dev_examples.append(
-                            InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))          
+                examples.append(
+                                InputExample(guid=guid, text_a=premise, text_b=hypothesis, label=label))
+            data_list.append(examples)
 
-        return train_examples, dev_examples
+
+        return data_list[0], data_list[1], data_list[2]
         #return train/dev list of InputExample objects
 ############################################################################
 
@@ -272,7 +262,8 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
         `cls_token_segment_id` define the segment id associated to the CLS token (0 for BERT, 2 for XLNet)
     """
 
-    label_map = {'against':0,'support':1,'neutral':2} ##################
+    # label_map = {'against':0,'support':1,'neutral':2} ##################
+    label_map = {label : i for i, label in enumerate(label_list)}
 
     features = []
     for (ex_index, example) in enumerate(examples):
@@ -298,7 +289,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
         #  BERT:
         #  tokens:   [CLS] is this jack ##son ##ville ? [SEP] no it is not . [SEP]
         #  type_ids:   0   0  0    0    0     0       0   0   1  1  1  1   1   1
-        
+
         # RoBERTa:
         #  tokens:   [CLS] is this jack ##son ##ville ? [SEP] [SEP] no it is not . [SEP]
         #  type_ids:   0   0  0    0    0     0       0   0     0    1  1  1  1  1   1
@@ -504,7 +495,7 @@ def main():
 
     processors = {
         "std": StdProcessor
-        
+
     }
 
     output_modes = {
@@ -526,7 +517,7 @@ def main():
     if args.gradient_accumulation_steps < 1:
         raise ValueError("Invalid gradient_accumulation_steps parameter: {}, should be >= 1".format(
                             args.gradient_accumulation_steps))
-        
+
     args.train_batch_size = args.train_batch_size // args.gradient_accumulation_steps
 
     random.seed(args.seed)
@@ -547,12 +538,12 @@ def main():
 
     processor = processors[task_name]()
     output_mode = output_modes[task_name]
-    train_examples, dev_examples = processor.get_VAST_train_and_dev('dataset/VAST/vast_train.csv', 'dataset/VAST/vast_dev_zero.csv')
+    train_examples, dev_examples, test_examples = processor.get_VAST('/home/tup51337/dataset/VAST/vast_train.csv', '/home/tup51337/dataset/VAST/vast_dev_zero.csv', '/home/tup51337/dataset/VAST/vast_test_zero.csv')
 
-    label_list = ["support", "against", "neutral"]
+    label_list = ["against", "support", "neutral"]
     num_labels = len(label_list)
-    
-    print('num_labels:', num_labels, 'training size:', len(train_examples), 'dev size:', len(dev_examples))
+
+    print('num_labels:', num_labels, 'training size:', len(train_examples), 'dev size:', len(dev_examples), 'test size:', len(test_examples))
 
 
     num_train_optimization_steps = None
@@ -578,16 +569,15 @@ def main():
     nb_tr_steps = 0
     tr_loss = 0
     max_dev_F1 = 0.0
+    final_test_f1 = 0.0
     tr_loss_track = []
     dev_loss_track = []
     if args.do_train:
         train_dataloader = examples_to_dataloader(train_examples, label_list, args.max_seq_length, tokenizer, output_mode, args.train_batch_size, sample_type='random')
         dev_dataloader = examples_to_dataloader(dev_examples, label_list, args.max_seq_length, tokenizer, output_mode, args.eval_batch_size, sample_type='sequential')
-        
-        '''pre-train(discarded)'''
+        test_dataloader = examples_to_dataloader(test_examples, label_list, args.max_seq_length, tokenizer, output_mode, args.eval_batch_size, sample_type='sequential')
 
-        
-        '''fine-tune'''
+        '''train on training data'''
         iter_co = 0
         final_test_performance = 0.0
         for fine_tune_epoch in trange(int(args.num_train_epochs), desc="Epoch"):
@@ -611,7 +601,7 @@ def main():
                 loss.backward()
 
                 tr_loss += loss.item()
-                
+
                 nb_tr_examples += input_ids.size(0)
                 nb_tr_steps += 1
 
@@ -620,7 +610,7 @@ def main():
                 global_step += 1
 
             '''
-            start evaluate on dev set after this epoch
+            start evaluate on dev set after each epoch
             '''
             model.eval()
             preds = []
@@ -643,121 +633,76 @@ def main():
                     preds[0] = np.append(preds[0], logits.detach().cpu().numpy(), axis=0)
             #####
                 dev_loss += loss_fct(logits.view(-1, num_labels),label_ids.view(-1)).item()
-            
+
             print('\ntrain loss(per sample):', str(tr_loss/len(train_examples)), 'dev loss(per sample):', str(dev_loss/len(dev_examples)),'\n')
             #####
-            
+
             preds = preds[0]
             pred_probs = softmax(preds,axis=1)#變sum=1的小數
             pred_label_ids = list(np.argmax(pred_probs, axis=1))
             gold_label_ids = gold_label_ids
-            
+
             assert len(pred_label_ids) == len(gold_label_ids)
 
-            
+
             hit_co = 0
             for k in range(len(pred_label_ids)):
                 if pred_label_ids[k] == gold_label_ids[k]:
                     hit_co +=1
             dev_acc = hit_co/len(gold_label_ids)
-            dev_F1 = f1_score(gold_label_ids, pred_label_ids, average='macro')       
-            
-##########################################################          
+            dev_F1 = f1_score(gold_label_ids, pred_label_ids, average='macro')
+
+##########################################################
             # use F1 to select best model
             if dev_F1 > max_dev_F1:
                 max_dev_F1 = dev_F1
                 print('\ndev F1:', dev_F1, 'max dev F1:', max_dev_F1, ' dev acc:', dev_acc, '\n')
-                '''store model'''
-                model_to_save = (
-                    model.module if hasattr(model, "module") else model
-                )  # Take care of distributed/parallel training
-                store_transformers_models(model_to_save, tokenizer, 'RoBERTa_model/VAST', 'VAST_'+'finetune_epoch_'+str(fine_tune_epoch)+'_seed_'+str(args.seed)+'_lr_' + str(args.learning_rate) + '_len_' + str(args. max_seq_length)+'_dev_F1_'+ str(max_dev_F1)+'.pt')
+                '''Test this best model on test set'''
 
-                #save best model path for the following testing 
-                best_model_path = 'RoBERTa_model/VAST/' + 'VAST_'+'finetune_epoch_'+str(fine_tune_epoch)+'_seed_'+str(args.seed)+'_lr_' + str(args.learning_rate) + '_len_' + str(args. max_seq_length)+'_dev_F1_'+str(max_dev_F1)+'.pt'
-                print('best_model_path: ' + best_model_path)
-               
+                model.eval()
+                preds = []
+                gold_label_ids = []
+                for input_ids, input_mask, segment_ids, label_ids in test_dataloader:
+                    input_ids = input_ids.to(device)
+                    input_mask = input_mask.to(device)
+                    segment_ids = segment_ids.to(device)
+                    label_ids = label_ids.to(device)
+                    gold_label_ids+=list(label_ids.detach().cpu().numpy())
+
+                    with torch.no_grad():
+                        logits = model(input_ids, input_mask)
+                    if len(preds) == 0:
+                        preds.append(logits.detach().cpu().numpy())
+                    else:
+                        preds[0] = np.append(preds[0], logits.detach().cpu().numpy(), axis=0)
+
+                preds = preds[0]
+                pred_probs = softmax(preds,axis=1)#變sum=1的小數
+                pred_label_ids = list(np.argmax(pred_probs, axis=1))
+                gold_label_ids = gold_label_ids
+
+                assert len(pred_label_ids) == len(gold_label_ids)
+
+
+                hit_co = 0
+                for k in range(len(pred_label_ids)):
+                    if pred_label_ids[k] == gold_label_ids[k]:
+                        hit_co +=1
+                test_acc = hit_co/len(gold_label_ids)
+                test_F1 = f1_score(gold_label_ids, pred_label_ids, average='macro')
+                final_test_f1 = test_F1
+                print('\ncurrent test F1:', test_F1)
+
             else:
                 print('\ndev F1:', dev_F1, 'max dev F1:', max_dev_F1, ' dev acc:', dev_acc, '\n')
-##########################################################
 
-
-##########################################################
-
-    '''
-    evaluate on test set
-    best model file name: best_model_path
-    '''
-    #####
-
-#     best_model_path = 'RoBERTa_model/VAST/VAST_pretrain_epoch_0_finetune_epoch_9_seed_42_dev_acc_0.48773307163886165.pt'
-    #####
-    model = RobertaForSequenceClassification(num_labels)
-    tokenizer = RobertaTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
-    model.to(device)
-    
-
-    # VAST
-    test_examples= processor.get_VAST_test('dataset/VAST/vast_test_zero.csv')
-
-#     # SemT6
-#     test_examples= processor.get_SemT6_test()
-    
-    
-
-    test_dataloader = examples_to_dataloader(test_examples, label_list, args.max_seq_length, tokenizer, output_mode, args.test_batch_size, sample_type='sequential')
-    print('test size:', len(test_examples))
-   
-    print('model is loaded from: ' + best_model_path)
-    
-    model.load_state_dict(torch.load(best_model_path))
-    model.eval()
-    preds = []
-    gold_label_ids = []
-
-    print('Testing...')
-    for input_ids, input_mask, segment_ids, label_ids in test_dataloader:#test_dataloader
-        input_ids = input_ids.to(device)
-        input_mask = input_mask.to(device)
-        segment_ids = segment_ids.to(device)
-        label_ids = label_ids.to(device)
-        gold_label_ids+=list(label_ids.detach().cpu().numpy())
-
-        with torch.no_grad():
-            logits = model(input_ids, input_mask)
-        if len(preds) == 0:
-            preds.append(logits.detach().cpu().numpy())
-        else:
-            preds[0] = np.append(preds[0], logits.detach().cpu().numpy(), axis=0)
-
-    preds = preds[0]
-
-    pred_probs = softmax(preds,axis=1)
-    pred_label_ids = list(np.argmax(pred_probs, axis=1))
-
-    gold_label_ids = gold_label_ids
-    assert len(pred_label_ids) == len(gold_label_ids)
-    hit_co = 0
-    for k in range(len(pred_label_ids)):
-        if pred_label_ids[k] == gold_label_ids[k]:
-            hit_co +=1
-    test_acc = hit_co/len(gold_label_ids)
-
-    test_F1 = f1_score(gold_label_ids, pred_label_ids, average='macro')   
-
-    print('\ntest F1:', test_F1, 'test acc:', test_acc)
-
-        
-            
-##########################################################
-
+        print('Final test f1: ', final_test_f1)
 
 if __name__ == "__main__":
     main()
 
 '''
-mixup:
-CUDA_VISIBLE_DEVICES=0 python -u train.MNLI.py --task_name rte --do_train --do_lower_case --num_train_epochs 10 --pretrain_epochs 10 --pretrain_sample_size 1 --train_batch_size 5 --pretrain_batch_size 50 --eval_batch_size 32 --learning_rate 1e-6 --max_seq_length 128 --seed 42
+CUDA_VISIBLE_DEVICES=0 python -u train.VAST.py --task_name rte --do_train --do_lower_case --num_train_epochs 10 --train_batch_size 32 --eval_batch_size 32 --learning_rate 1e-6 --max_seq_length 128 --seed 42
 
 
 '''
