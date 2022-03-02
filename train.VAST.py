@@ -63,6 +63,8 @@ logger = logging.getLogger(__name__)
 bert_hidden_dim = 768 #1024
 pretrain_model_dir = 'bert-base-uncased' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
 
+roberta_single= RobertaModel.from_pretrained(pretrain_model_dir)
+
 def store_transformers_models(model, tokenizer, output_dir, flag_str):
     '''
     store the model
@@ -81,11 +83,12 @@ class RobertaForSequenceClassification(nn.Module):
         super(RobertaForSequenceClassification, self).__init__()
         self.tagset_size = tagset_size
 
-        self.roberta_single= RobertaModel.from_pretrained(pretrain_model_dir)
+        # self.roberta_single= RobertaModel.from_pretrained(pretrain_model_dir)
         self.single_hidden2tag = RobertaClassificationHead(bert_hidden_dim, tagset_size)
 
-    def forward(self, input_ids, input_mask):
-        outputs_single = self.roberta_single(input_ids, input_mask, None)
+    # def forward(self, input_ids, input_mask):
+    def forward(self, outputs_single):
+        # outputs_single = self.roberta_single(input_ids, input_mask, None)
         hidden_states_single = outputs_single[1]#torch.tanh(self.hidden_layer_2(torch.tanh(self.hidden_layer_1(outputs_single[1])))) #(batch, hidden)
 
         score_single = self.single_hidden2tag(hidden_states_single) #(batch, tag_set)
@@ -568,8 +571,10 @@ def main():
                 batch = tuple(t.to(device) for t in batch)
                 input_ids, input_mask, segment_ids, label_ids = batch
 
+                # logits = model(input_ids, input_mask)
+                outputs_single = roberta_single(input_ids, input_mask, None)
+                logits = model(outputs_single)
 
-                logits = model(input_ids, input_mask)
                 loss_fct = CrossEntropyLoss()
                 loss = loss_fct(logits.view(-1, num_labels), label_ids.view(-1)) ##
 
@@ -606,7 +611,9 @@ def main():
                 gold_label_ids+=list(label_ids.detach().cpu().numpy())
 
                 with torch.no_grad():
-                    logits = model(input_ids, input_mask)
+                    # logits = model(input_ids, input_mask)
+                    outputs_single = roberta_single(input_ids, input_mask, None)
+                    logits = model(outputs_single)
                 if len(preds) == 0:
                     preds.append(logits.detach().cpu().numpy())
                 else:
@@ -650,7 +657,9 @@ def main():
                     gold_label_ids+=list(label_ids.detach().cpu().numpy())
 
                     with torch.no_grad():
-                        logits = model(input_ids, input_mask)
+                        # logits = model(input_ids, input_mask)
+                        outputs_single = roberta_single(input_ids, input_mask, None)
+                        logits = model(outputs_single)
                     if len(preds) == 0:
                         preds.append(logits.detach().cpu().numpy())
                     else:
@@ -682,7 +691,7 @@ if __name__ == "__main__":
     main()
 
 '''
-CUDA_VISIBLE_DEVICES=0 python -u train.VAST.py --task_name rte --do_train --do_lower_case --num_train_epochs 20 --train_batch_size 24 --eval_batch_size 32 --learning_rate 1e-6 --max_seq_length 205 --seed 42
+CUDA_VISIBLE_DEVICES=3 python -u train.VAST.py --task_name rte --do_train --do_lower_case --num_train_epochs 20 --train_batch_size 26 --eval_batch_size 32 --learning_rate 1e-6 --max_seq_length 205 --seed 42
 
 
 '''
