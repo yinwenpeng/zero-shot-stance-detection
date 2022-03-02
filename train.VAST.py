@@ -207,7 +207,7 @@ class StdProcessor():
         for fil in filelists:
             examples = []
             df_train = pd.read_csv(fil)
-            df_train = df_train[['post','new_topic','label']]
+            df_train = df_train[['text','topic','label']]
             df_train['label'] = [dic[i] for i in df_train['label']]
             for i in range(len(df_train)):
                 guid = "train-"+str(i)
