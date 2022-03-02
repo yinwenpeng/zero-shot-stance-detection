@@ -22,6 +22,7 @@ import csv
 import logging
 import os
 from sklearn.metrics import f1_score
+import json
 
 import random
 import sys
@@ -212,14 +213,14 @@ class StdProcessor():
             for i in range(len(df_train)):
                 guid = "train-"+str(i)
 
-                raw_premise = df_train['text'][i]
+                raw_premise = json.loads(df_train['text'][i])
                 premise = ''
                 for lis in raw_premise:
                     premise+=' '+' '.join(lis)
                 premise = premise.strip()
-                raw_hypothesis = df_train['topic'][i]
+                raw_hypothesis = json.loads(df_train['topic'][i])
                 hypothesis = ' '.join(raw_premise)
-                
+
                 label = df_train['label'][i]
 
                 print("premise -->:", premise)
