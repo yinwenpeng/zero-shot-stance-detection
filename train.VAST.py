@@ -42,9 +42,11 @@ from scipy.special import softmax
 # from scipy.stats import pearsonr, spearmanr
 # from sklearn.metrics import matthews_corrcoef, f1_score
 
-from transformers.models.roberta.tokenization_roberta import RobertaTokenizer
+# from transformers.models.roberta.tokenization_roberta import RobertaTokenizer
+from transformers.models.bert.tokenization_bert import BertTokenizer
 from transformers.optimization import AdamW
-from transformers.models.roberta.modeling_roberta import RobertaModel
+# from transformers.models.roberta.modeling_roberta import RobertaModel
+from transformers.models.bert.modeling_bert import BertModel
 
 # from transformers.modeling_bert import BertModel
 # from transformers.tokenization_bert import BertTokenizer
@@ -59,7 +61,7 @@ logger = logging.getLogger(__name__)
 # import torch.nn as nn
 
 bert_hidden_dim = 1024
-pretrain_model_dir = 'roberta-large' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
+pretrain_model_dir = 'bert-large-uncased' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
 
 def store_transformers_models(model, tokenizer, output_dir, flag_str):
     '''
@@ -211,7 +213,7 @@ class StdProcessor():
                 label = df_train['label'][i]
 
                 examples.append(
-                                InputExample(guid=guid, text_a=hypothesis, text_b=premise, label=label))
+                                InputExample(guid=guid, text_a=premise, text_b=hypothesis, label=label))
             data_list.append(examples)
 
 
