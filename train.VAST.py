@@ -200,6 +200,29 @@ class StdProcessor():
         return test_examples
 
 
+    def get_VAST_new(self, filelists):
+
+        dic = {0:'against',1:'support',2:'neutral'}
+
+        data_list = []
+        for fil in filelists:
+            examples = []
+            fin = open(fil, 'r', encoding='utf-8', newline='\n', errors='ignore')
+            lines = fin.readlines()
+            for i in range(0, len(lines), 4):
+                premise = lines[i].lower().strip()
+                hypothesis = lines[i+1].lower().strip()
+                label = dic[int(lines[i+2].strip())]
+
+
+                examples.append(
+                                InputExample(guid=guid, text_a=premise, text_b=hypothesis, label=label))
+            data_list.append(examples)
+
+
+        return data_list[0], data_list[1], data_list[2]
+
+
     def get_VAST(self, filelists):
 
         dic = {0:'against',1:'support',2:'neutral'}
@@ -532,7 +555,8 @@ def main():
 
     processor = processors[task_name]()
     output_mode = output_modes[task_name]
-    train_examples, dev_examples, test_examples = processor.get_VAST(['/home/tup51337/dataset/VAST/vast_train.csv', '/home/tup51337/dataset/VAST/vast_dev_zero.csv', '/home/tup51337/dataset/VAST/vast_test_zero.csv'])
+    data_path = '/home/tup51337/dataset/VAST_Bin_Liang/'
+    train_examples, dev_examples, test_examples = processor.get_VAST_new([data_path+'lda_vast_train.raw', data_path+'vast_dev.raw', data_path+'vast_test.raw'])
 
     label_list = ["against", "support", "neutral"]
     num_labels = len(label_list)
