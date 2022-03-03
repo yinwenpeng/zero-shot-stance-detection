@@ -43,11 +43,11 @@ from scipy.special import softmax
 # from scipy.stats import pearsonr, spearmanr
 # from sklearn.metrics import matthews_corrcoef, f1_score
 
-# from transformers.models.roberta.tokenization_roberta import RobertaTokenizer
-from transformers.models.bert.tokenization_bert import BertTokenizer as RobertaTokenizer
+from transformers.models.roberta.tokenization_roberta import RobertaTokenizer
+# from transformers.models.bert.tokenization_bert import BertTokenizer as RobertaTokenizer
 from transformers.optimization import AdamW
-# from transformers.models.roberta.modeling_roberta import RobertaModel
-from transformers.models.bert.modeling_bert import BertModel as RobertaModel
+from transformers.models.roberta.modeling_roberta import RobertaModel
+# from transformers.models.bert.modeling_bert import BertModel as RobertaModel
 
 # from transformers.modeling_bert import BertModel
 # from transformers.tokenization_bert import BertTokenizer
@@ -61,9 +61,9 @@ logger = logging.getLogger(__name__)
 # from pytorch_transformers.modeling_bert import BertPreTrainedModel, BertModel
 # import torch.nn as nn
 
-bert_hidden_dim = 768 #1024
-MLP_hidden_dim = 283
-pretrain_model_dir = 'bert-base-uncased' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
+bert_hidden_dim = 1024 #1024
+MLP_hidden_dim = 1024
+pretrain_model_dir = 'roberta-large' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
 
 
 def store_transformers_models(model, tokenizer, output_dir, flag_str):
@@ -558,6 +558,7 @@ def main():
     label_list = ["against", "support", "neutral"]
     num_labels = len(label_list)
     #training size: 13477 dev size: 1019 test size: 1460
+    # training size: 13477 dev size: 1019 test size: 1460
     print('num_labels:', num_labels, 'training size:', len(train_examples), 'dev size:', len(dev_examples), 'test size:', len(test_examples))
 
 
