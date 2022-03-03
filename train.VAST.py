@@ -216,7 +216,7 @@ class StdProcessor():
 
 
                 examples.append(
-                                InputExample(guid=guid, text_a=premise, text_b=hypothesis, label=label))
+                                InputExample(guid="randomstr", text_a=premise, text_b=hypothesis, label=label))
             data_list.append(examples)
 
 
