@@ -207,7 +207,7 @@ class StdProcessor():
         data_list = []
         for fil in filelists:
             examples = []
-            fin = open(fil, 'r', encoding='utf-8', newline='\n', errors='ignore')
+            fin = open(fil)
             lines = fin.readlines()
             for i in range(0, len(lines), 4):
                 print('lines[i]:', lines[i])
