@@ -216,11 +216,12 @@ class StdProcessor():
                 premise = lines[i].lower().strip()
                 if len(premise)>0:
                     hypothesis = lines[i+1].lower().strip()
-                    label = dic[int(lines[i+2].strip())]
+                    if lines[i+2].strip() in set(['0','1','2']):
+                        label = dic[int(lines[i+2].strip())]
 
 
-                    examples.append(
-                                    InputExample(guid="randomstr", text_a=premise, text_b=hypothesis, label=label))
+                        examples.append(
+                                        InputExample(guid="randomstr", text_a=premise, text_b=hypothesis, label=label))
             data_list.append(examples)
 
 
