@@ -43,11 +43,11 @@ from scipy.special import softmax
 # from scipy.stats import pearsonr, spearmanr
 # from sklearn.metrics import matthews_corrcoef, f1_score
 
-# from transformers.models.roberta.tokenization_roberta import RobertaTokenizer
-from transformers.models.bert.tokenization_bert import BertTokenizer as RobertaTokenizer
+from transformers.models.roberta.tokenization_roberta import RobertaTokenizer
+# from transformers.models.bert.tokenization_bert import BertTokenizer as RobertaTokenizer
 from transformers.optimization import AdamW
-# from transformers.models.roberta.modeling_roberta import RobertaModel
-from transformers.models.bert.modeling_bert import BertModel as RobertaModel
+from transformers.models.roberta.modeling_roberta import RobertaModel
+# from transformers.models.bert.modeling_bert import BertModel as RobertaModel
 
 # from transformers.modeling_bert import BertModel
 # from transformers.tokenization_bert import BertTokenizer
@@ -61,11 +61,10 @@ logger = logging.getLogger(__name__)
 # from pytorch_transformers.modeling_bert import BertPreTrainedModel, BertModel
 # import torch.nn as nn
 
-bert_hidden_dim = 768 #1024
-MLP_hidden_dim = 283
-pretrain_model_dir = 'bert-base-uncased' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
+bert_hidden_dim = 1024 #1024
+MLP_hidden_dim = 1024
+pretrain_model_dir = 'roberta-large' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
 
-roberta_single= RobertaModel.from_pretrained(pretrain_model_dir)
 
 def store_transformers_models(model, tokenizer, output_dir, flag_str):
     '''
@@ -85,12 +84,11 @@ class RobertaForSequenceClassification(nn.Module):
         super(RobertaForSequenceClassification, self).__init__()
         self.tagset_size = tagset_size
 
-        # self.roberta_single= RobertaModel.from_pretrained(pretrain_model_dir)
+        self.roberta_single= RobertaModel.from_pretrained(pretrain_model_dir)
         self.single_hidden2tag = RobertaClassificationHead(bert_hidden_dim, tagset_size)
 
-    # def forward(self, input_ids, input_mask):
-    def forward(self, outputs_single):
-        # outputs_single = self.roberta_single(input_ids, input_mask, None)
+    def forward(self, input_ids, input_mask):
+        outputs_single = self.roberta_single(input_ids, input_mask, None)
         hidden_states_single = outputs_single[1]#torch.tanh(self.hidden_layer_2(torch.tanh(self.hidden_layer_1(outputs_single[1])))) #(batch, hidden)
 
         score_single = self.single_hidden2tag(hidden_states_single) #(batch, tag_set)
@@ -104,7 +102,7 @@ class RobertaClassificationHead(nn.Module):
     def __init__(self, bert_hidden_dim, num_labels):
         super(RobertaClassificationHead, self).__init__()
         self.dense = nn.Linear(bert_hidden_dim, MLP_hidden_dim)
-        self.dropout = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(0.1)
         self.out_proj = nn.Linear(MLP_hidden_dim, num_labels)
 
     def forward(self, features):
@@ -554,12 +552,13 @@ def main():
 
     processor = processors[task_name]()
     output_mode = output_modes[task_name]
-    data_path = '/home/tup51337/dataset/VAST_Bin_Liang/'
-    train_examples, dev_examples, test_examples = processor.get_VAST_new([data_path+'lda_vast_train.raw', data_path+'vast_dev.raw', data_path+'vast_test.raw'])
+    data_path = '/home/tup51337/dataset/VAST/'
+    train_examples, dev_examples, test_examples = processor.get_VAST([data_path+'vast_train.csv', data_path+'vast_dev_zero.csv', data_path+'vast_test_zero.csv'])
 
     label_list = ["against", "support", "neutral"]
     num_labels = len(label_list)
     #training size: 13477 dev size: 1019 test size: 1460
+    # training size: 13477 dev size: 1019 test size: 1460
     print('num_labels:', num_labels, 'training size:', len(train_examples), 'dev size:', len(dev_examples), 'test size:', len(test_examples))
 
 
@@ -572,7 +571,6 @@ def main():
     model = RobertaForSequenceClassification(num_labels)
     tokenizer = RobertaTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
     model.to(device)
-    roberta_single.to(device)
 
     param_optimizer = list(model.named_parameters())
     no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
@@ -606,9 +604,7 @@ def main():
                 batch = tuple(t.to(device) for t in batch)
                 input_ids, input_mask, segment_ids, label_ids = batch
 
-                # logits = model(input_ids, input_mask)
-                outputs_single = roberta_single(input_ids, input_mask, None)
-                logits = model(outputs_single)
+                logits = model(input_ids, input_mask)
 
                 loss_fct = CrossEntropyLoss()
                 loss = loss_fct(logits.view(-1, num_labels), label_ids.view(-1)) ##
@@ -646,9 +642,7 @@ def main():
                 gold_label_ids+=list(label_ids.detach().cpu().numpy())
 
                 with torch.no_grad():
-                    # logits = model(input_ids, input_mask)
-                    outputs_single = roberta_single(input_ids, input_mask, None)
-                    logits = model(outputs_single)
+                    logits = model(input_ids, input_mask)
                 if len(preds) == 0:
                     preds.append(logits.detach().cpu().numpy())
                 else:
@@ -681,7 +675,7 @@ def main():
                 print('\ndev F1:', dev_F1, 'max dev F1:', max_dev_F1, ' dev acc:', dev_acc, '\n')
                 '''Test this best model on test set'''
 
-                model.eval()
+                # model.eval()
                 preds = []
                 gold_label_ids = []
                 for input_ids, input_mask, segment_ids, label_ids in test_dataloader:
@@ -692,9 +686,7 @@ def main():
                     gold_label_ids+=list(label_ids.detach().cpu().numpy())
 
                     with torch.no_grad():
-                        # logits = model(input_ids, input_mask)
-                        outputs_single = roberta_single(input_ids, input_mask, None)
-                        logits = model(outputs_single)
+                        logits = model(input_ids, input_mask)
                     if len(preds) == 0:
                         preds.append(logits.detach().cpu().numpy())
                     else:
@@ -726,7 +718,6 @@ if __name__ == "__main__":
     main()
 
 '''
-CUDA_VISIBLE_DEVICES=3 python -u train.VAST.py --task_name rte --do_train --do_lower_case --num_train_epochs 20 --train_batch_size 64 --eval_batch_size 32 --learning_rate 1e-3 --max_seq_length 205 --seed 42
-
+CUDA_VISIBLE_DEVICES=3 python -u train.VAST.joint.py --task_name rte --do_train --do_lower_case --num_train_epochs 20 --train_batch_size 16 --eval_batch_size 32 --learning_rate 1e-6 --max_seq_length 200 --seed 42
 
 '''
