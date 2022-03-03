@@ -210,9 +210,9 @@ class StdProcessor():
             fin = open(fil, 'r', encoding='utf-8', newline='\n', errors='ignore')
             lines = fin.readlines()
             for i in range(0, len(lines), 4):
-                # print('lines[i]:', lines[i])
-                # print('lines[i+1]:', lines[i+1])
-                # print('lines[i+2]:', lines[i+2])
+                print('lines[i]:', lines[i])
+                print('lines[i+1]:', lines[i+1])
+                print('lines[i+2]:', lines[i+2])
                 premise = lines[i].lower().strip()
                 if len(premise)>0:
                     hypothesis = lines[i+1].lower().strip()
